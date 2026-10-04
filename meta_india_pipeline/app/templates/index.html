@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ app_name }}</title><link rel="stylesheet" href="/static/app.css"></head>
+<body><main class="wrap"><h1>{{ app_name }}</h1><p class="lede">Downloads India-only Meta regulatory transparency reports, validates extracted rows, and generates your four-sheet Excel format.</p>
+<div class="grid">
+  <div class="card"><span>Reports tracked</span><strong>{{ report_count }}</strong></div>
+  <div class="card"><span>Normalized rows</span><strong>{{ row_count }}</strong></div>
+  <div class="card"><span>Rows needing review</span><strong>{{ review_count }}</strong></div>
+</div>
+<section class="panel"><h2>Pipeline</h2><p id="status">{% if last_job %}Last job: <b>{{ last_job.status }}</b> — {{ last_job.message or '' }}{% else %}No run yet.{% endif %}</p>
+<label>Admin token <input id="token" type="password" placeholder="Required to start a run"></label>
+<div class="actions"><button onclick="runSync()">Run India sync now</button>{% if latest_export %}<a class="button secondary" href="/download/latest">Download latest spreadsheet</a>{% endif %}</div></section>
+<section class="panel"><h2>Accuracy model</h2><p>Deterministic table extraction is primary. Validation flags anomalies and the optional AI verifier only checks suspicious rows. Source PDFs and generated exports are retained for auditability.</p></section>
+</main><script>
+async function runSync(){const token=document.getElementById('token').value; const r=await fetch('/api/run',{method:'POST',headers:{'X-Admin-Token':token}}); const j=await r.json(); if(!r.ok){document.getElementById('status').innerText=j.detail||'Failed';return;} poll(j.job_id)}
+async function poll(id){const el=document.getElementById('status'); for(;;){const r=await fetch('/api/status/'+id);const j=await r.json();el.innerText=`${j.status}: ${j.message||''}`;if(['complete','failed'].includes(j.status)){if(j.status==='complete')setTimeout(()=>location.reload(),700);break;}await new Promise(x=>setTimeout(x,2500));}}
+</script></body></html>
