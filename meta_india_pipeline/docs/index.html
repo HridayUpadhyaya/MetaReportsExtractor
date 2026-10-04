@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Meta India Regulatory Reports</title>
+  <style>
+    :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif; }
+    body { margin: 0; background: #0b1020; color: #e8ecf6; }
+    main { max-width: 980px; margin: 0 auto; padding: 48px 20px 72px; }
+    h1 { font-size: clamp(2rem, 5vw, 3.4rem); margin: 0 0 10px; }
+    .sub { color: #aeb8d0; max-width: 760px; line-height: 1.6; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(190px,1fr)); gap: 14px; margin: 32px 0; }
+    .card { background: #151c31; border: 1px solid #28324d; border-radius: 16px; padding: 18px; }
+    .label { color: #9eabc7; font-size: .85rem; }
+    .value { font-size: 1.8rem; font-weight: 750; margin-top: 5px; word-break: break-word; }
+    .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 26px; }
+    a.btn { display:inline-block; text-decoration:none; font-weight:700; padding:12px 16px; border-radius:12px; background:#5f7cff; color:white; }
+    a.btn.secondary { background:#202a45; border:1px solid #35415f; }
+    .notice { margin-top: 28px; padding: 16px; background: #171f35; border-left: 4px solid #f0b64c; border-radius: 8px; color:#cad2e5; line-height:1.55; }
+    code { background:#11182a; padding:2px 5px; border-radius:5px; }
+    footer { margin-top: 44px; color:#8692ac; font-size:.9rem; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Meta India Regulatory Reports</h1>
+  <p class="sub">A reproducible India-only extraction pipeline for Meta regulatory-transparency reports. The spreadsheet is produced by deterministic parsing and validation; suspicious rows are separated for review instead of being silently corrected.</p>
+
+  <div class="grid">
+    <div class="card"><div class="label">Reports parsed</div><div class="value" id="reports">—</div></div>
+    <div class="card"><div class="label">Spreadsheet rows</div><div class="value" id="rows">—</div></div>
+    <div class="card"><div class="label">Rows needing review</div><div class="value" id="review">—</div></div>
+    <div class="card"><div class="label">Latest reporting period</div><div class="value" id="period">—</div></div>
+  </div>
+
+  <div class="actions">
+    <a class="btn" id="download" href="downloads/meta_india_reports_latest.xlsx">Download latest spreadsheet</a>
+    <a class="btn secondary" href="data/master_data.json">Download audit JSON</a>
+    <a class="btn secondary" href="data/review.json">Review flagged rows</a>
+    <a class="btn secondary" href="https://github.com/HridayUpadhyaya/MetaReportsExtractor/actions/workflows/update.yml">Run/update workflow on GitHub</a>
+  </div>
+
+  <div class="notice" id="notice">Loading pipeline status…</div>
+
+  <footer>
+    Data is derived from Meta's regulatory-transparency reports. Always verify flagged rows against the original source PDF before treating them as final.
+  </footer>
+</main>
+<script>
+(async () => {
+  const notice = document.getElementById('notice');
+  try {
+    const r = await fetch('data/status.json', {cache:'no-store'});
+    if (!r.ok) throw new Error('status not generated yet');
+    const s = await r.json();
+    document.getElementById('reports').textContent = s.report_count ?? '—';
+    document.getElementById('rows').textContent = s.row_count ?? '—';
+    document.getElementById('review').textContent = s.review_count ?? '—';
+    document.getElementById('period').textContent = s.latest_period_end ?? '—';
+    if (!s.has_export) document.getElementById('download').style.display = 'none';
+    notice.textContent = `Last generated: ${s.generated_at || 'unknown'}. Failed reports: ${s.failed_report_count ?? 0}. New reports processed in the last run: ${s.new_reports_processed_this_run ?? 0}.`;
+  } catch (e) {
+    document.getElementById('download').style.display = 'none';
+    notice.innerHTML = 'No successful extraction has been published yet. Open the GitHub Actions link above and run <code>Update Meta India reports</code> once.';
+  }
+})();
+</script>
+</body>
+</html>
