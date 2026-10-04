@@ -5,3 +5,8 @@ __pycache__/
 *.pyc
 *.db
 storage/
+# Local official Meta PDFs
+inbox/*.pdf
+inbox/manifest.json
+!inbox/README.txt
+!inbox/manifest.example.json
